@@ -69,7 +69,7 @@ async Task OnVoiceStateUpdated(SocketUser user, SocketVoiceState before, SocketV
    
     if (before.VoiceChannel == null && after.VoiceChannel != null)
     {
-        if (client.GetChannel(serverId) is IMessageChannel channel && client.GetChannel(voiceChannelId) is IMessageChannel voiceChannel)
+        if (client.GetChannel(serverId) is IMessageChannel channel)
         {
             var users = after.VoiceChannel.ConnectedUsers;
             if (users?.Count == 1)
