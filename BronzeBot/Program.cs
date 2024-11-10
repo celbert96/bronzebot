@@ -31,6 +31,10 @@ static Task Log(LogMessage msg)
 
 async Task ClientReady()
 {
+    foreach (var clientGuild in client.Guilds)
+    {
+        Console.WriteLine(clientGuild.Name);
+    }
     var globalCommand = new SlashCommandBuilder();
     globalCommand.WithName("ping");
     globalCommand.WithDescription("Will return a pong");
@@ -84,10 +88,30 @@ async Task OnVoiceStateUpdated(SocketUser user, SocketVoiceState before, SocketV
     }
 }
 
+
+Task OnGuildJoined(SocketGuild guild)
+{
+    Console.WriteLine(guild.Name + " joined");
+    Console.WriteLine("Default channel: " + guild.DefaultChannel.Name);
+    return Task.CompletedTask;
+    // foreach (var socketGuildUser in guild.Users)
+    // {
+    //     foreach (var activity in socketGuildUser.Activities)
+    //     {
+    //         if (activity.Type == ActivityType.Playing)
+    //         {
+    //             
+    //         }
+    //     }
+    // }
+}
+
 client.Log += Log;
 client.Ready += ClientReady;
+client.JoinedGuild += OnGuildJoined;
 client.UserVoiceStateUpdated += OnVoiceStateUpdated;
 client.SlashCommandExecuted += SlashCommandHandler;
+
 
 await client.LoginAsync(TokenType.Bot, token);
 await client.StartAsync();
