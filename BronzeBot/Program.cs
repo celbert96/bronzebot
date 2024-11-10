@@ -1,4 +1,5 @@
-﻿using Discord;
+﻿using BronzeBot.Services;
+using Discord;
 using Discord.Net;
 using Discord.WebSocket;
 using Newtonsoft.Json;
@@ -52,14 +53,10 @@ async Task ClientReady()
 
 async Task SlashCommandHandler(SocketSlashCommand command)
 {
-    var responseText = $"You executed {command.Data.Name}";
-
-    if (command.Data.Name == "ping")
-    {
-        responseText = "pong";
-    }
+    var slashCommandService = SlashCommandService.GetInstance();
+    var response = slashCommandService.HandleCommand(command.Data.Name);
     
-    await command.RespondAsync(responseText);
+    await command.RespondAsync(response.Text);
 }
 
 async Task OnVoiceStateUpdated(SocketUser user, SocketVoiceState before, SocketVoiceState after)
