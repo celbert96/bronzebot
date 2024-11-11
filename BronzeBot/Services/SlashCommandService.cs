@@ -9,7 +9,7 @@ public class SlashCommandService
 
     private static readonly SlashCommandService Instance = new();
     
-    private Dictionary<String, ISlashCommandHandler> _commandHandlers = new()
+    private readonly Dictionary<string, ISlashCommandHandler> _commandHandlers = new()
     {
         { PingHandler.CommandName, new PingHandler()}
     };
@@ -21,9 +21,9 @@ public class SlashCommandService
 
     public SlashCommandResponse HandleCommand(String command)
     {
-        if (_commandHandlers.ContainsKey(command))
+        if (_commandHandlers.TryGetValue(command, out var handler))
         {
-            return _commandHandlers[command].HandleSlashCommand([]);
+            return handler.HandleSlashCommand([]);
         }
         
         return new SlashCommandResponse("Unknown command");

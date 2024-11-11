@@ -6,3 +6,4 @@ riderModule.iml
 BronzeBot/.env
 .idea/
 .vs/
+BronzeBot/.env.dev
