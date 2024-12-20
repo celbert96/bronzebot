@@ -1,30 +1,24 @@
+using BronzeBot.Repositories;
 using BronzeBot.Services;
 using Discord;
+using Discord.Commands;
 using Discord.Net;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 
 namespace BronzeBot.Models;
 
-public class DiscordClient
+public class DiscordClient(BotGuildsRepository botGuildsRepository)
 {
-    private DiscordClient() { }
+    private readonly DiscordSocketClient _socketClient = new();
     
-    public static readonly DiscordClient Instance = new();
+    private DiscordClientProps _clientProps = null!;
 
-    private static readonly DiscordSocketClient SocketClient = new();
-    
-    private static DiscordClientProps _clientProps = null!;
+    private readonly BotGuildsRepository _botGuildsRepository = botGuildsRepository;
 
-    private static bool _initialized;
 
     public async Task InitializeClient()
     {
-        if (_initialized)
-        {
-            return;
-        }
-        
         var token = Environment.GetEnvironmentVariable("BRONZE_BOT_TOKEN");
         if (token == null)
         {
@@ -50,21 +44,19 @@ public class DiscordClient
             VoiceChannelId = voiceChannelId
         };
         
-        await SocketClient.LoginAsync(TokenType.Bot, token);
-        await SocketClient.StartAsync();
+        await _socketClient.LoginAsync(TokenType.Bot, token);
+        await _socketClient.StartAsync();
 
-        SocketClient.Log += Log;
-        SocketClient.Ready += OnClientReady;
-        SocketClient.SlashCommandExecuted += SlashCommandHandler;
-        SocketClient.UserVoiceStateUpdated += OnVoiceStateUpdated;
-        SocketClient.JoinedGuild += OnGuildJoined;
-
-        _initialized = true;
+        _socketClient.Log += Log;
+        _socketClient.Ready += OnClientReady;
+        _socketClient.SlashCommandExecuted += SlashCommandHandler;
+        _socketClient.UserVoiceStateUpdated += OnVoiceStateUpdated;
+        _socketClient.JoinedGuild += OnGuildJoined;
     }
     
-    private static async Task OnClientReady()
+    private async Task OnClientReady()
     {
-        foreach (var clientGuild in SocketClient.Guilds)
+        foreach (var clientGuild in _socketClient.Guilds)
         {
             Console.WriteLine(clientGuild.Name);
         }
@@ -74,7 +66,7 @@ public class DiscordClient
 
         try
         {
-            await SocketClient.CreateGlobalApplicationCommandAsync(globalCommand.Build());
+            await _socketClient.CreateGlobalApplicationCommandAsync(globalCommand.Build());
         }
         catch(HttpException exception)
         {
@@ -83,13 +75,13 @@ public class DiscordClient
         }
     }
 
-    private static Task Log(LogMessage msg)
+    private Task Log(LogMessage msg)
     {
         Console.WriteLine(msg.ToString());
         return Task.CompletedTask;
     }
     
-    private static async Task SlashCommandHandler(SocketSlashCommand command)
+    private async Task SlashCommandHandler(SocketSlashCommand command)
     {
         var slashCommandService = SlashCommandService.GetInstance();
         var response = slashCommandService.HandleCommand(command.Data.Name);
@@ -97,7 +89,7 @@ public class DiscordClient
         await command.RespondAsync(response.Text);
     }
     
-    private static async Task OnVoiceStateUpdated(SocketUser user, SocketVoiceState before, SocketVoiceState after)
+    private async Task OnVoiceStateUpdated(SocketUser user, SocketVoiceState before, SocketVoiceState after)
     {
         if (user.IsBot)
         {
@@ -108,7 +100,7 @@ public class DiscordClient
    
         if (before.VoiceChannel == null && after.VoiceChannel != null)
         {
-            if (SocketClient.GetChannel(_clientProps.TextChannelId) is IMessageChannel textChannel)
+            if (_socketClient.GetChannel(_clientProps.TextChannelId) is IMessageChannel textChannel)
             {
                 var users = after.VoiceChannel.ConnectedUsers;
                 if (users?.Count == 1)
@@ -124,10 +116,11 @@ public class DiscordClient
     }
 
     // bot has joined a new guild (server)
-    private static Task OnGuildJoined(SocketGuild guild)
+    private Task OnGuildJoined(SocketGuild guild)
     {
         Console.WriteLine(guild.Name + " joined");
         Console.WriteLine("Default channel: " + guild.DefaultChannel.Name);
+        _botGuildsRepository.AddBotGuild(guild.Id, _clientProps.TextChannelId, _clientProps.VoiceChannelId);
         return Task.CompletedTask;
         // foreach (var socketGuildUser in guild.Users)
         // {
