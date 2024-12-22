@@ -1,8 +1,5 @@
-using System.Diagnostics;
-using BronzeBot.Repositories;
 using BronzeBot.Services;
 using Discord;
-using Discord.Commands;
 using Discord.Net;
 using Discord.WebSocket;
 using Newtonsoft.Json;
@@ -21,18 +18,6 @@ public class DiscordClient
         if (token == null)
         {
             throw new Exception("Bot token not set");
-        }
-        
-        ulong serverId = (ulong)Int64.Parse(Environment.GetEnvironmentVariable("RL_SERVER_ID") ?? string.Empty);
-        if (serverId == 0)
-        {
-            throw new Exception("Server ID not provided");
-        }
-        
-        ulong voiceChannelId = (ulong) Int64.Parse(Environment.GetEnvironmentVariable("RL_VOICE_CHANNEL_ID") ?? string.Empty);
-        if (voiceChannelId == 0)
-        {
-            throw new Exception("No voice channel id provided.");
         }
         
         await _socketClient.LoginAsync(TokenType.Bot, token);
