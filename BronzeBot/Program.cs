@@ -8,9 +8,7 @@ if (string.IsNullOrEmpty(dbConnectionString))
     throw new Exception("The Bronze Bot DB connection string is missing.");
 }
 
-var postgresService = new PostgresDatabaseService(dbConnectionString);
-var botGuildsRepository = new BotGuildsRepository(postgresService);
-var client = new DiscordClient(botGuildsRepository);
+var client = new DiscordClient();
 await client.InitializeClient();
 
 await Task.Delay(-1);

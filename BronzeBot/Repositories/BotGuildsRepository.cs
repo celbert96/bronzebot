@@ -9,16 +9,21 @@ namespace BronzeBot.Repositories;
                      voice_channel_id varchar(255)
                  )
  */
-public class BotGuildsRepository
+public class BotGuildsRepository(IDatabaseService databaseService)
 {
-    private readonly IDatabaseService _databaseService;
     private const string GuildIdBindVarTag = "guildId";
     private const string TextChannelBindVarTag = "textChannelId";
     private const string VoiceChannelIdBindVarTag = "voiceChannelId";
 
-    public BotGuildsRepository(IDatabaseService databaseService)
+    public bool BotGuildExists(ulong guildId)
     {
-        _databaseService = databaseService;
+        var bindVars = new Dictionary<string, object>
+        {
+            { GuildIdBindVarTag, guildId.ToString() }
+        };
+
+        var sql = $"select guild_id from bot_guilds where guild_id = @{GuildIdBindVarTag}";
+        return databaseService.PerformQuery(sql, bindVars).Count > 0;
     }
 
     public bool AddBotGuild(ulong guildId, ulong textChannelId, ulong voiceChannelId)
@@ -33,7 +38,7 @@ public class BotGuildsRepository
         var sql =
             $"insert into bot_guilds (guild_id, text_channel_id, voice_channel_id) values (@{GuildIdBindVarTag}, @{TextChannelBindVarTag}, @{VoiceChannelIdBindVarTag})";
         
-        var numRows = _databaseService.PerformNonQuery(sql, bindVars);
+        var numRows = databaseService.PerformNonQuery(sql, bindVars);
         return numRows > 0;
     }
 }

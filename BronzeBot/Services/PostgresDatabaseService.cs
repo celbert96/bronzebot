@@ -42,13 +42,13 @@ public class PostgresDatabaseService(string connectionString) : IDatabaseService
         var cmd = new NpgsqlCommand(query, conn);
         cmd.CommandTimeout = CommandTimeout;
         cmd.Connection.Open();
-        var reader = cmd.ExecuteReader(System.Data.CommandBehavior.CloseConnection);
 
         foreach(var item in bindVars)
         {
             cmd.Parameters.Add(new NpgsqlParameter(item.Key, item.Value));
         }
 
+        var reader = cmd.ExecuteReader(System.Data.CommandBehavior.CloseConnection);
         var queryResults = new List<Dictionary<string, object>>();
         List<string> columns = Enumerable.Range(0, reader.FieldCount).Select(reader.GetName).ToList();
 

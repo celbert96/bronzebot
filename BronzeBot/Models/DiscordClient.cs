@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using BronzeBot.Repositories;
 using BronzeBot.Services;
 using Discord;
@@ -8,15 +9,12 @@ using Newtonsoft.Json;
 
 namespace BronzeBot.Models;
 
-public class DiscordClient(BotGuildsRepository botGuildsRepository)
+public class DiscordClient
 {
     private readonly DiscordSocketClient _socketClient = new();
     
-    private DiscordClientProps _clientProps = null!;
-
-    private readonly BotGuildsRepository _botGuildsRepository = botGuildsRepository;
-
-
+    private readonly Dictionary<ulong, DiscordClientProps> _clientPropsMap = new(); 
+    
     public async Task InitializeClient()
     {
         var token = Environment.GetEnvironmentVariable("BRONZE_BOT_TOKEN");
@@ -36,13 +34,6 @@ public class DiscordClient(BotGuildsRepository botGuildsRepository)
         {
             throw new Exception("No voice channel id provided.");
         }
-
-        _clientProps = new DiscordClientProps
-        {
-            BotToken = token,
-            TextChannelId = serverId,
-            VoiceChannelId = voiceChannelId
-        };
         
         await _socketClient.LoginAsync(TokenType.Bot, token);
         await _socketClient.StartAsync();
@@ -59,6 +50,21 @@ public class DiscordClient(BotGuildsRepository botGuildsRepository)
         foreach (var clientGuild in _socketClient.Guilds)
         {
             Console.WriteLine(clientGuild.Name);
+            Console.WriteLine(clientGuild.Id);
+
+            var clientProps = new DiscordClientProps
+            {
+                GuildId = clientGuild.Id,
+                TextChannelId = clientGuild.TextChannels.First(e => e.Name == "general").Id,
+                VoiceChannelId = clientGuild.VoiceChannels.First(e => e.Name == "General").Id
+            };
+            
+            // if (!botGuildsRepository.BotGuildExists(clientGuild.Id))
+            // {
+            //     botGuildsRepository.AddBotGuild(clientGuild.Id, clientProps.TextChannelId, clientProps.VoiceChannelId);
+            // }
+
+            _clientPropsMap[clientGuild.Id] = clientProps;
         }
         var globalCommand = new SlashCommandBuilder();
         globalCommand.WithName("ping");
@@ -96,11 +102,12 @@ public class DiscordClient(BotGuildsRepository botGuildsRepository)
             Console.WriteLine("User is bot");
             return;
         }
-        
-   
+
         if (before.VoiceChannel == null && after.VoiceChannel != null)
         {
-            if (_socketClient.GetChannel(_clientProps.TextChannelId) is IMessageChannel textChannel)
+            var clientProps = _clientPropsMap.Values.First(e => e.VoiceChannelId == after.VoiceChannel.Id);
+
+            if (_socketClient.GetChannel(clientProps.TextChannelId) is IMessageChannel textChannel)
             {
                 var users = after.VoiceChannel.ConnectedUsers;
                 if (users?.Count == 1)
@@ -120,8 +127,17 @@ public class DiscordClient(BotGuildsRepository botGuildsRepository)
     {
         Console.WriteLine(guild.Name + " joined");
         Console.WriteLine("Default channel: " + guild.DefaultChannel.Name);
-        _botGuildsRepository.AddBotGuild(guild.Id, _clientProps.TextChannelId, _clientProps.VoiceChannelId);
+        var clientProps = new DiscordClientProps
+        {
+            GuildId = guild.Id,
+            TextChannelId = guild.TextChannels.First(e => e.Name == "general").Id,
+            VoiceChannelId = guild.VoiceChannels.First(e => e.Name == "General").Id
+        };
+
+        _clientPropsMap[guild.Id] = clientProps;
         return Task.CompletedTask;
+        
+        //botGuildsRepository.AddBotGuild(guild.Id, textChannelId, voiceChannelId);
         // foreach (var socketGuildUser in guild.Users)
         // {
         //     foreach (var activity in socketGuildUser.Activities)
