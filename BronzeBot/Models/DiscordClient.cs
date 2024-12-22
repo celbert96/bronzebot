@@ -8,7 +8,9 @@ namespace BronzeBot.Models;
 
 public class DiscordClient
 {
-    private readonly DiscordSocketClient _socketClient = new();
+    private readonly DiscordSocketClient _socketClient = new(new DiscordSocketConfig {
+        GatewayIntents = GatewayIntents.AllUnprivileged |
+                         GatewayIntents.GuildPresences | GatewayIntents.GuildMembers});
     
     private readonly Dictionary<ulong, DiscordClientProps> _clientPropsMap = new(); 
     
@@ -91,13 +93,12 @@ public class DiscordClient
         if (before.VoiceChannel == null && after.VoiceChannel != null)
         {
             var clientProps = _clientPropsMap.Values.First(e => e.VoiceChannelId == after.VoiceChannel.Id);
-
             if (_socketClient.GetChannel(clientProps.TextChannelId) is IMessageChannel textChannel)
             {
                 var users = after.VoiceChannel.ConnectedUsers;
                 if (users?.Count == 1)
                 {
-                    await textChannel.SendMessageAsync( "@here " + user.Username + " invites you to play Rocket League!");
+                    await textChannel.SendMessageAsync( GetJoinMessage(user));
                 }
             }
             else
@@ -133,5 +134,18 @@ public class DiscordClient
         //         }
         //     }
         // }
+    }
+
+    private String GetJoinMessage(SocketUser user)
+    {
+        foreach (var activity in user.Activities)
+        {
+            if (activity.Type == ActivityType.Playing)
+            {
+                return $"@here {user.Username} invites you to play {activity.Name}!";
+            }
+        }
+
+        return $"@here {user.Username} has joined voice, join them!";
     }
 }
