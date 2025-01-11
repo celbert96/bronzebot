@@ -4,7 +4,7 @@ namespace BronzeBot.CommandHandlers;
 
 public class PingHandler : ISlashCommandHandler
 {
-    public static readonly string CommandName = "ping";
+    public const string CommandName = "ping";
 
     public SlashCommandResponse HandleSlashCommand(List<String> args)
     {
