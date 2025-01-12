@@ -22,9 +22,19 @@ jobs:
           registry: ghcr.io
           username: ${{github.actor}}
           password: ${{secrets.GITHUB_TOKEN}}
+
+      - name: 'Setup python'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: 'Update Application Version'
+        run: |
+          pip install semver
+          echo "NEW_VERSION=$(python3 ./.github/workflows/scripts/update-app-version.py --file ./BronzeBot/BronzeBot.csproj --build-type=PATCH)" >> $GITHUB_ENV
           
       - name: 'Build Image'
         run: |
-          docker build -f ./BronzeBot/Dockerfile . --tag ghcr.io/celbert96/bronzebot:latest
+          docker build -f ./BronzeBot/Dockerfile . -t ghcr.io/celbert96/bronzebot:latest -t ghcr.io/celbert96/bronzebot:${{env.NEW_VERSION}}
           docker push ghcr.io/celbert96/bronzebot:latest
         
