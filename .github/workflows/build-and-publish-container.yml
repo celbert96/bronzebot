@@ -46,5 +46,5 @@ jobs:
       - name: 'Build Image'
         run: |
           docker build -f ./BronzeBot/Dockerfile . -t ghcr.io/celbert96/bronzebot:latest -t ghcr.io/celbert96/bronzebot:${{env.NEW_VERSION}}
-          docker push ghcr.io/celbert96/bronzebot:latest
+          docker push ghcr.io/celbert96/bronzebot --all-tags
         
