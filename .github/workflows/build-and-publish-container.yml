@@ -28,10 +28,18 @@ jobs:
         with:
           python-version: '3.13'
 
+      - name: 'Setup git username and email'
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
       - name: 'Update Application Version'
         run: |
           pip install semver
           echo "NEW_VERSION=$(python3 ./.github/workflows/scripts/update-app-version.py --file ./BronzeBot/BronzeBot.csproj --build-type=PATCH)" >> $GITHUB_ENV
+          git add --all
+          git commit -m "automated version update to ${{env.NEW_VERSION}}"
+
           
       - name: 'Build Image'
         run: |
