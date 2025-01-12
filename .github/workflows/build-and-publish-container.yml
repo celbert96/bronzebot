@@ -1,0 +1,33 @@
+﻿name: build-and-publish-container.yml
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: 
+
+jobs:
+  push-store-image:
+    runs-on: ubuntu-latest
+    defaults: 
+      run:
+        working-directory: './app'
+    steps:
+      - name: 'Checkout code'
+        uses: actions/checkout@main
+        
+      - name: 'Login to GitHub Container Registry'
+        uses: docker/login-action@v3.3.0
+        with:
+          registry: ghcr.io
+          username: ${{github.actor}}
+          password: ${{secrets.GITHUB_TOKEN}}
+          
+      - name: 'Build Image'
+        run: |
+          docker build . --tag ghcr.io/celbert96/bronzebot:latest
+          docker push ghcr.io/celbert96/bronzebot:latest
+        
