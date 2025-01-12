@@ -39,6 +39,7 @@ jobs:
           echo "NEW_VERSION=$(python3 ./.github/workflows/scripts/update-app-version.py --file ./BronzeBot/BronzeBot.csproj --build-type=PATCH)" >> $GITHUB_ENV
           git add --all
           git commit -m "automated version update to ${{env.NEW_VERSION}}"
+          git push
 
           
       - name: 'Build Image'
