@@ -8,7 +8,7 @@ WORKDIR /src
 COPY . ./
 RUN dotnet restore
 COPY . .
-RUN dotnet build "BronzeBot.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "BronzeBot/BronzeBot.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
