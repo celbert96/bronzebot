@@ -12,7 +12,7 @@ RUN dotnet build "BronzeBot/BronzeBot.csproj" -c $BUILD_CONFIGURATION -o /app/bu
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "BronzeBot.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "BronzeBot/BronzeBot.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
