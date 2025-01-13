@@ -53,6 +53,7 @@ jobs:
         with:
           repository: celbert96/bronzebot-helm
           path: helm-repository
+          token: ${{secrets.GHA_PAT}}
 
       - name: Update Helm Version
         run: |
