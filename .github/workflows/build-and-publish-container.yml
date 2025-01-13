@@ -58,7 +58,7 @@ jobs:
         run: |
           pip install semver pyyaml
           cd $GITHUB_WORKSPACE/helm-repository
-          python3 $GITHUB_WORKSPACE/.github/workflows/scripts/update-helm-version.py --file bronzebot/Chart.yaml --app-version ${{inputs.app-version}}
+          python3 $GITHUB_WORKSPACE/.github/workflows/scripts/update-helm-version.py --file bronzebot/Chart.yaml --app-version ${{env.NEW_VERSION}}
           git add --all
           git commit -m "updated helm chart version"
           git push
