@@ -1,0 +1,41 @@
+# NOT IN USE
+# TODO: SHARED ACTIONS REPO ?
+name: update-helm-repo.yml
+description: 'Update a Helm Chart in another Repository'
+inputs:
+  repository:
+    required: true
+    description: 'repository url where the helm file resides'
+  chart-path:
+    required: true
+    description: 'path of the helm chart'
+  app-version:
+    required: true
+    description: 'application version'
+
+runs:
+  using: "composite"
+  steps:
+    - name: 'Setup git username and email'
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+    - name: Checkout Helm Repository
+      uses: actions/checkout@main
+      with:
+        repository: ${{inputs.repository}}
+        path: helm-repository
+
+    - name: Checkout Application Repository
+      uses: actions/checkout@main
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+
+    - name: Update Helm Version
+      run: |
+        pip install semver pyyaml
+        python3 ./.github/workflows/scripts/update-helm-version.py --file $GITHUB_WORKSPACE/${{inputs.chart-path}} --app-version ${{inputs.app-version}}

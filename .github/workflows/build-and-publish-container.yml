@@ -47,4 +47,19 @@ jobs:
         run: |
           docker build -f ./BronzeBot/Dockerfile . -t ghcr.io/celbert96/bronzebot:latest -t ghcr.io/celbert96/bronzebot:${{env.NEW_VERSION}}
           docker push ghcr.io/celbert96/bronzebot --all-tags
+
+      - name: Checkout Helm Repository
+        uses: actions/checkout@main
+        with:
+          repository: celbert96/bronzebot-helm
+          path: helm-repository
+
+      - name: Update Helm Version
+        run: |
+          pip install semver pyyaml
+          cd $GITHUB_WORKSPACE/helm-repository
+          python3 ./.github/workflows/scripts/update-helm-version.py --file bronzebot/Chart.yaml --app-version ${{inputs.app-version}}
+          git add --all
+          git commit -m "updated helm chart version"
+          git push
         
