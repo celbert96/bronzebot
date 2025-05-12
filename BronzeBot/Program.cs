@@ -1,6 +1,4 @@
 ﻿using BronzeBot.Models;
-using BronzeBot.Repositories;
-using BronzeBot.Services;
 
 var dbConnectionString = Environment.GetEnvironmentVariable("BRONZE_BOT_DB_CONNECTION_STRING") ?? string.Empty;
 if (string.IsNullOrEmpty(dbConnectionString))
